@@ -3,10 +3,20 @@
 ###################################################
 ## ENV VARS required to run script
 ###################################################
-#export env var
 while read env_var; do
   export "$env_var"
 done < /etc/environment
+
+###################################################
+## Variables
+###################################################
+CONTAINERD_VER="1.6.14"
+RUNC_VER="1.1.3"
+CNI_VER="1.1.1"
+
+POD_NETWORK="10.244.0.0/16"
+SERVICE_NETWORK="10.96.0.0/12"
+
 
 echo "########################################################"
 echo "## Install Containerd, Runc and Kubernetes components ##"
@@ -16,13 +26,13 @@ echo "########################################################"
 ###################################################
 ## Setup proxy ENV
 ###################################################
-export no_proxy=10.0.0.0/16,127.0.0.1,::1,10.96.0.0/12,10.244.0.0/16,localhost,10.0.0.0/8
-export NO_PROXY=10.0.0.0/16,127.0.0.1,::1,10.96.0.0/12,10.244.0.0/16,localhost,10.0.0.0/8
+export no_proxy=10.0.0.0/16,127.0.0.1,::1,$SERVICE_NETWORK,$POD_NETWORK,localhost,10.0.0.0/8
+export NO_PROXY=10.0.0.0/16,127.0.0.1,::1,$SERVICE_NETWORK,$POD_NETWORK,localhost,10.0.0.0/8
 
 ###################################################
-## Install general dependencies
+## Install dependencies
 ###################################################
-echo "install general dependencies"
+echo "Install dependencies"
 apt-get update
 apt-get install -y apt-transport-https ca-certificates curl
 
@@ -40,11 +50,11 @@ version = 2
       SystemdCgroup = true
 EOF
 
-curl -fsSLo containerd-1.6.14-linux-amd64.tar.gz \
-          https://github.com/containerd/containerd/releases/download/v1.6.14/containerd-1.6.14-linux-amd64.tar.gz
+curl -fsSLo containerd-$CONTAINERD_VER-linux-amd64.tar.gz \
+          https://github.com/containerd/containerd/releases/download/v$CONTAINERD_VER/containerd-$CONTAINERD_VER-linux-amd64.tar.gz
 # install the binaries
-tar Cxzvf /usr/local containerd-1.6.14-linux-amd64.tar.gz
-rm containerd-1.6.14-linux-amd64.tar.gz
+tar Cxzvf /usr/local containerd-$CONTAINERD_VER-linux-amd64.tar.gz
+rm containerd-$CONTAINERD_VER-linux-amd64.tar.gz
 
 # config containerd systemd service
 rm -f /etc/systemd/system/containerd.service
@@ -111,7 +121,7 @@ echo "########################################################"
 ###################################################
 echo "Install runc"
 curl -fsSLo runc.amd64 \
-          https://github.com/opencontainers/runc/releases/download/v1.1.3/runc.amd64
+          https://github.com/opencontainers/runc/releases/download/v$RUNC_VER/runc.amd64
 install -m 755 runc.amd64 /usr/local/sbin/runc
 rm runc.amd64
 
@@ -123,11 +133,11 @@ echo "########################################################"
 ## Install CNI network plugins
 ###################################################
 echo "Install CNI network plugins"
-curl -fsSLo cni-plugins-linux-amd64-v1.1.1.tgz \
-          https://github.com/containernetworking/plugins/releases/download/v1.1.1/cni-plugins-linux-amd64-v1.1.1.tgz
+curl -fsSLo cni-plugins-linux-amd64-v$CNI_VER.tgz \
+          https://github.com/containernetworking/plugins/releases/download/v$CNI_VER/cni-plugins-linux-amd64-v$CNI_VER.tgz
 mkdir -p /opt/cni/bin
-tar Cxzvf /opt/cni/bin cni-plugins-linux-amd64-v1.1.1.tgz
-rm cni-plugins-linux-amd64-v1.1.1.tgz
+tar Cxzvf /opt/cni/bin cni-plugins-linux-amd64-v$CNI_VER.tgz
+rm cni-plugins-linux-amd64-v$CNI_VER.tgz
 
 echo "########################################################"
 echo "## Done install CNI binary                            ##"
