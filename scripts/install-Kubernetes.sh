@@ -28,6 +28,7 @@ echo "########################################################"
 ###################################################
 export no_proxy=10.0.0.0/16,127.0.0.1,::1,$SERVICE_NETWORK,$POD_NETWORK,localhost,10.0.0.0/8
 export NO_PROXY=10.0.0.0/16,127.0.0.1,::1,$SERVICE_NETWORK,$POD_NETWORK,localhost,10.0.0.0/8
+sed -i -e "s#^no_proxy.*#no_proxy=\"10.0.0.0/16,127.0.0.1,::1,$SERVICE_NETWORK,$POD_NETWORK,localhost,10.0.0.0/8\"#g" /etc/environment
 
 ###################################################
 ## Install dependencies
